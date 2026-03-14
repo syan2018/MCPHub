@@ -1,0 +1,28 @@
+[package]
+name = "mcphub"
+version = "0.1.0"
+edition = "2024"
+description = "Generic MCP hub for discovering and proxying upstream MCP servers"
+license = "MIT"
+
+[dependencies]
+anyhow = "1.0"
+clap = { version = "4.6", features = ["derive"] }
+dirs = "6.0"
+http = "1.4"
+rmcp = { version = "1.2.0", default-features = false, features = [
+    "client",
+    "macros",
+    "server",
+    "transport-io",
+    "transport-child-process",
+    "transport-streamable-http-client-reqwest",
+] }
+reqwest = "0.13"
+schemars = "1.1"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1.48", features = ["macros", "rt-multi-thread", "process", "sync", "time", "net", "io-util"] }
+
+[dev-dependencies]
+tempfile = "3.23"
