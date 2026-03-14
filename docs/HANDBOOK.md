@@ -14,8 +14,8 @@ MCP servers, and provide a stable control surface for:
 - exposing the hub itself as an MCP server over stdio
 - reusing upstream connections inside a long-lived runtime
 
-This repository is intentionally separate from the older Unreal-specific Python
-hub. The current codebase focuses on a reusable MCP core first.
+This repository focuses on a reusable MCP core that can work across many
+different upstream servers.
 
 ## Current Status
 
@@ -425,8 +425,7 @@ Unit test status at the time of writing:
 - structured output rendering
   Render text/json/image/resource outputs more ergonomically.
 - endpoint profiles
-  Presets for Unreal, docs servers, coding assistants, and internal MCP
-  fleets.
+  Presets for docs servers, coding assistants, and internal MCP fleets.
 - import/export config
   Move endpoint registry in and out of JSON/TOML bundles cleanly.
 
@@ -450,8 +449,8 @@ questions to answer:
 3. Is secure credential storage required before broader adoption?
 4. Do you want dynamic generated per-tool commands, or is generic
    `invoke <qualified_name>` sufficient?
-5. Will Unreal-specific lifecycle control become a first-class layer on top of
-   this generic hub?
+5. Which opinionated workflows, if any, should live on top of this generic
+   hub?
 
 ## Bottom Line
 

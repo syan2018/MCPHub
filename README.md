@@ -16,9 +16,6 @@ The core idea is simple:
 - expose hub-native MCP tools through a stdio facade
 - grow toward a CLI-style facade over schema-driven invocation
 
-This repository is the clean-room start of that direction, separate from the
-older Unreal-specific Python hub.
-
 ## Implemented In This First Rust Slice
 
 - standalone Cargo project
@@ -49,20 +46,20 @@ older Unreal-specific Python hub.
 
 ```powershell
 cd MCPHub
-cargo run -- register-http ue-main http://127.0.0.1:19840/mcp
-cargo run -- discover ue-main
-cargo run -- list-tools ue-main
-cargo run -- tool-info ue-main/search
-cargo run -- call ue-main/search --arguments-json "{\"query\":\"Lyra\",\"domain\":\"cpp\"}"
-cargo run -- invoke ue-main/search query=Lyra domain=cpp
+cargo run -- register-http docs-main http://127.0.0.1:19840/mcp
+cargo run -- discover docs-main
+cargo run -- list-tools docs-main
+cargo run -- tool-info docs-main/search
+cargo run -- call docs-main/search --arguments-json "{\"query\":\"rust\",\"domain\":\"docs\"}"
+cargo run -- invoke docs-main/search query=rust domain=docs
 cargo run -- daemon start
-cargo run -- invoke ue-main/search query=Lyra domain=cpp --daemon
+cargo run -- invoke docs-main/search query=rust domain=docs --daemon
 ```
 
 To inspect cached schemas as JSON:
 
 ```powershell
-cargo run -- list-tools ue-main --json
+cargo run -- list-tools docs-main --json
 ```
 
 To register a stdio server:

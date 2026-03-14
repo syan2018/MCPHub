@@ -2,8 +2,7 @@
 
 ## Vision
 
-Build a transport-aware MCP hub in Rust that can manage any upstream MCP server,
-not just Unreal-specific ones.
+Build a transport-aware MCP hub in Rust that can manage any upstream MCP server.
 
 ## Why Rust
 
@@ -72,7 +71,7 @@ This validates the core "hub as MCP server over other MCP servers" shape.
 - richer type coercion
 - direct invocation by `qualified_name`
 - health checks and reconnect policies
-- optional presets for domain-specific hubs such as Unreal
+- optional presets for opinionated domain-specific hub bundles
 
 ### Phase 3 Status
 

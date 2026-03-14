@@ -4,7 +4,7 @@
 
 `MCPHub` 是一个通用的、基于 Rust 的 MCP Hub，用来管理上游 MCP Server。
 
-它的目标不是只服务 Unreal，而是先抽出一个可复用的 MCP 核心层，用于：
+它的目标是先抽出一个可复用的 MCP 核心层，用于：
 
 - 用稳定 id 注册上游 MCP endpoint
 - 发现并缓存上游工具
@@ -13,7 +13,7 @@
 - 通过 stdio 把 Hub 自己暴露成一个 MCP Server
 - 在长生命周期运行态里复用上游连接
 
-这个仓库与旧的 Unreal 专用 Python Hub 是分离的，当前重点是先把通用能力做扎实。
+这个仓库当前重点是先把通用能力做扎实，形成一个可复用的 MCP 核心。
 
 ## 当前项目状态
 
@@ -412,7 +412,7 @@ cargo run -- call hub-facade check-endpoint-health --set endpoint_id=context7
 - 结构化输出渲染
   更好地处理 text / json / image / resource 等类型。
 - endpoint profile
-  为 Unreal、文档服务、编码助手、内部 MCP 集群提供预置模板。
+  为文档服务、编码助手、内部 MCP 集群提供预置模板。
 - 配置导入导出
   让 endpoint registry 可以更方便地以 JSON/TOML bundle 迁移。
 
@@ -433,7 +433,7 @@ cargo run -- call hub-facade check-endpoint-health --set endpoint_id=context7
 2. 你是否希望所有 shell 命令都通过一个后台常驻 daemon 来共享 runtime？
 3. 在更广范围使用之前，安全 secret 存储是不是必须先做？
 4. 你更想要动态生成的 per-tool command，还是泛型的 `invoke <qualified_name>` 已经足够？
-5. Unreal 专属生命周期控制，未来是作为 preset / profile 加在上面，还是要成为一等能力？
+5. 未来是否需要在这个通用 Hub 之上再叠加某些更强约束的工作流？
 
 ## 总结
 
