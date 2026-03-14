@@ -32,7 +32,6 @@
 - 通过 stdio 暴露 hub-native MCP 工具
 - 长生命周期运行时中的连接复用
 - 可观察连接复用状态的健康检查
-- 面向 Unreal 的工程发现、引擎探测、启动和连接辅助能力
 
 仍然属于早期实现的部分：
 
@@ -53,9 +52,6 @@
   进程内 session pool，负责复用上游连接
 - `src/service.rs`
   registry、tool inspect、tool target resolve 等较高层逻辑
-- `src/unreal.rs`
-  Unreal 工作流辅助层，负责 `.uproject` 发现、引擎定位、
-  UnrealCopilot 配置解析、Editor 拉起和 endpoint 注册
 - `src/mcp_client.rs`
   面向 HTTP / stdio transport 的上游 MCP client 操作
 - `src/schema_utils.rs`
@@ -68,24 +64,6 @@
   开发规划与阶段状态
 
 ## 核心概念
-
-## Unreal 适配层
-
-`MCPHub` 现在额外带了一层面向 Unreal 的辅助 CLI，适用于通过
-`UnrealCopilot` 插件在编辑器进程内托管 MCP Server 的工程。
-
-当前可用入口：
-
-- `mcphub unreal status`
-- `mcphub unreal launch`
-- `mcphub unreal connect`
-
-这层现在主要负责四件事：
-
-- 从当前目录自动发现 `.uproject`
-- 根据 `EngineAssociation` 定位引擎安装目录
-- 读取工程里的 UnrealCopilot MCP 设置
-- 可选拉起 Editor，并等待内嵌 HTTP MCP endpoint 变为可用
 
 ### Endpoint
 

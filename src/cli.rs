@@ -1,5 +1,3 @@
-use std::path::PathBuf;
-
 use anyhow::{Result, bail};
 use clap::{Args, Parser, Subcommand};
 
@@ -9,7 +7,6 @@ use crate::mcp_client::parse_arguments_json;
 use crate::runtime::HubRuntime;
 use crate::schema_utils::{build_default_input, coerce_value_for_path};
 use crate::service::HubService;
-use crate::unreal;
 
 #[derive(Debug, Parser)]
 #[command(name = "mcphub")]
@@ -32,7 +29,6 @@ enum Command {
     Invoke(InvokeArgs),
     Health(HealthArgs),
     Daemon(DaemonArgs),
-    Unreal(UnrealArgs),
     ServeStdio,
 }
 
@@ -138,63 +134,6 @@ enum DaemonCommand {
     Run,
 }
 
-#[derive(Debug, Args)]
-struct UnrealArgs {
-    #[command(subcommand)]
-    command: UnrealCommand,
-}
-
-#[derive(Debug, Subcommand)]
-enum UnrealCommand {
-    Status(UnrealStatusArgs),
-    Launch(UnrealLaunchArgs),
-    Connect(UnrealConnectArgs),
-}
-
-#[derive(Debug, Args)]
-struct UnrealStatusArgs {
-    #[arg(long)]
-    project: Option<PathBuf>,
-    #[arg(long)]
-    endpoint_id: Option<String>,
-    #[arg(long)]
-    json: bool,
-}
-
-#[derive(Debug, Args)]
-struct UnrealLaunchArgs {
-    #[arg(long)]
-    project: Option<PathBuf>,
-    #[arg(long)]
-    endpoint_id: Option<String>,
-    #[arg(long)]
-    engine_dir: Option<PathBuf>,
-    #[arg(long, default_value_t = 120)]
-    wait_seconds: u64,
-    #[arg(long)]
-    stdout_log: Option<PathBuf>,
-    #[arg(long)]
-    stderr_log: Option<PathBuf>,
-    #[arg(long)]
-    json: bool,
-}
-
-#[derive(Debug, Args)]
-struct UnrealConnectArgs {
-    #[arg(long)]
-    project: Option<PathBuf>,
-    #[arg(long)]
-    endpoint_id: Option<String>,
-    #[arg(long)]
-    engine_dir: Option<PathBuf>,
-    #[arg(long)]
-    launch: bool,
-    #[arg(long, default_value_t = 180)]
-    wait_seconds: u64,
-    #[arg(long)]
-    json: bool,
-}
-
 pub async fn run() -> Result<()> {
     let cli = Cli::parse();
     match cli.command {
@@ -209,7 +148,6 @@ pub async fn run() -> Result<()> {
         Command::Invoke(args) => invoke(args).await,
         Command::Health(args) => health(args).await,
         Command::Daemon(args) => daemon_command(args).await,
-        Command::Unreal(args) => unreal_command(args).await,
         Command::ServeStdio => facade::serve_stdio().await,
     }
 }
@@ -482,178 +420,6 @@ async fn daemon_command(args: DaemonArgs) -> Result<()> {
         DaemonCommand::Stop => daemon::stop().await,
         DaemonCommand::Run => daemon::run().await,
     }
-}
-
-async fn unreal_command(args: UnrealArgs) -> Result<()> {
-    match args.command {
-        UnrealCommand::Status(args) => unreal_status(args).await,
-        UnrealCommand::Launch(args) => unreal_launch(args).await,
-        UnrealCommand::Connect(args) => unreal_connect(args).await,
-    }
-}
-
-async fn unreal_status(args: UnrealStatusArgs) -> Result<()> {
-    let report = unreal::status(unreal::UnrealStatusOptions {
-        project: args.project,
-        endpoint_id: args.endpoint_id,
-    })
-    .await?;
-
-    if args.json {
-        println!("{}", serde_json::to_string_pretty(&report)?);
-        return Ok(());
-    }
-
-    println!("project: {}", report.project.project_path.display());
-    println!("endpoint_id: {}", report.project.endpoint_id);
-    println!("endpoint_url: {}", report.project.endpoint_url);
-    println!(
-        "engine_association: {}",
-        report
-            .project
-            .engine_association
-            .as_deref()
-            .unwrap_or("<none>")
-    );
-    println!(
-        "engine_dir: {}",
-        report
-            .project
-            .engine_dir
-            .as_ref()
-            .map(|path| path.display().to_string())
-            .unwrap_or_else(|| "<unknown>".to_string())
-    );
-    println!(
-        "editor_exe: {}",
-        report
-            .project
-            .editor_exe
-            .as_ref()
-            .map(|path| path.display().to_string())
-            .unwrap_or_else(|| "<unknown>".to_string())
-    );
-    println!(
-        "transport: {} host={} port={} path={} auto_start={}",
-        report.project.copilot_settings.transport,
-        report.project.copilot_settings.host,
-        report.project.copilot_settings.port,
-        report.project.copilot_settings.path,
-        report.project.copilot_settings.auto_start_mcp_server
-    );
-    println!("registered: {}", report.endpoint_registered);
-    match report.health {
-        Some(health) => println!(
-            "health: healthy={} tools={} latency_ms={}",
-            health.healthy,
-            health
-                .tool_count
-                .map(|count| count.to_string())
-                .unwrap_or_else(|| "-".to_string()),
-            health.latency_ms
-        ),
-        None => println!(
-            "health: unavailable ({})",
-            report
-                .health_error
-                .unwrap_or_else(|| "unknown error".to_string())
-        ),
-    }
-    Ok(())
-}
-
-async fn unreal_launch(args: UnrealLaunchArgs) -> Result<()> {
-    let report = unreal::launch(unreal::UnrealLaunchOptions {
-        project: args.project,
-        endpoint_id: args.endpoint_id,
-        engine_dir: args.engine_dir,
-        wait_seconds: args.wait_seconds,
-        stdout_log: args.stdout_log,
-        stderr_log: args.stderr_log,
-    })
-    .await?;
-
-    if args.json {
-        println!("{}", serde_json::to_string_pretty(&report)?);
-        return Ok(());
-    }
-
-    println!("project: {}", report.project.project_path.display());
-    println!(
-        "editor_exe: {}",
-        report.project.editor_exe.unwrap().display()
-    );
-    println!("pid: {}", report.pid);
-    println!("endpoint_url: {}", report.project.endpoint_url);
-    println!("stdout_log: {}", report.stdout_log.display());
-    println!("stderr_log: {}", report.stderr_log.display());
-    match report.health {
-        Some(health) => println!(
-            "health: healthy={} tools={} latency_ms={}",
-            health.healthy,
-            health
-                .tool_count
-                .map(|count| count.to_string())
-                .unwrap_or_else(|| "-".to_string()),
-            health.latency_ms
-        ),
-        None => println!(
-            "health: unavailable ({})",
-            report
-                .health_error
-                .unwrap_or_else(|| "not checked".to_string())
-        ),
-    }
-    Ok(())
-}
-
-async fn unreal_connect(args: UnrealConnectArgs) -> Result<()> {
-    let report = unreal::connect(unreal::UnrealConnectOptions {
-        project: args.project,
-        endpoint_id: args.endpoint_id,
-        engine_dir: args.engine_dir,
-        launch: args.launch,
-        wait_seconds: args.wait_seconds,
-    })
-    .await?;
-
-    if args.json {
-        println!("{}", serde_json::to_string_pretty(&report)?);
-        return Ok(());
-    }
-
-    println!("project: {}", report.project.project_path.display());
-    println!("endpoint_id: {}", report.project.endpoint_id);
-    println!("endpoint_url: {}", report.project.endpoint_url);
-    println!(
-        "launched: {}{}",
-        report.launched,
-        report
-            .launch_pid
-            .map(|pid| format!(" pid={pid}"))
-            .unwrap_or_default()
-    );
-    if let Some(path) = report.stdout_log {
-        println!("stdout_log: {}", path.display());
-    }
-    if let Some(path) = report.stderr_log {
-        println!("stderr_log: {}", path.display());
-    }
-    println!(
-        "health: healthy={} tools={} latency_ms={}",
-        report.health.healthy,
-        report
-            .health
-            .tool_count
-            .unwrap_or(report.discovered_tool_count),
-        report.health.latency_ms
-    );
-    println!("registered: {}", report.registered);
-    println!("discovered_tools: {}", report.discovered_tool_count);
-    for tool in report.tools {
-        println!("  {}", tool);
-    }
-    Ok(())
 }
 
 async fn fetch_health(

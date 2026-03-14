@@ -36,7 +36,6 @@ What is already solid:
 - health checks with connection reuse visibility
 - local daemon mode for cross-command shared runtime reuse
 - schema helpers for defaults, enums, and simple composed schemas
-- Unreal project discovery, engine detection, launch, and connect helpers
 
 What is still early-stage:
 
@@ -58,9 +57,6 @@ What is still early-stage:
   In-process session pool for reusable upstream client connections.
 - `src/service.rs`
   Higher-level coordination over registry, inspection, and target resolution.
-- `src/unreal.rs`
-  Unreal-oriented workflow helpers for `.uproject` discovery, engine lookup,
-  UnrealCopilot config parsing, editor launch, and endpoint registration.
 - `src/mcp_client.rs`
   Upstream MCP client operations over HTTP and stdio transports.
 - `src/schema_utils.rs`
@@ -74,24 +70,6 @@ What is still early-stage:
   Development plan and phase tracking.
 
 ## Core Concepts
-
-## Unreal Layer
-
-`MCPHub` now includes an Unreal-specific helper layer for projects that host an
-MCP server through the `UnrealCopilot` plugin.
-
-Available CLI entry points:
-
-- `mcphub unreal status`
-- `mcphub unreal launch`
-- `mcphub unreal connect`
-
-That layer currently does four practical things:
-
-- discovers the active `.uproject` from the current directory
-- finds the engine install from `EngineAssociation`
-- reads UnrealCopilot MCP settings from project config
-- optionally launches the editor and waits for the embedded HTTP MCP endpoint
 
 ### Endpoint
 

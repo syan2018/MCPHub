@@ -4,8 +4,6 @@ Additional documentation:
 
 - [English Handbook](docs/HANDBOOK.md)
 - [中文手册](docs/HANDBOOK.zh-CN.md)
-- [Unreal Workflow](docs/UNREAL_WORKFLOW.md)
-- [Unreal 工作流](docs/UNREAL_WORKFLOW.zh-CN.md)
 
 `MCPHub` is a generic Rust-based hub for managing upstream MCP servers.
 
@@ -39,7 +37,6 @@ older Unreal-specific Python hub.
 - runtime health checks with observable connection reuse
 - local daemon mode for cross-command runtime reuse
 - richer schema handling for defaults, enums, and simple composed schemas
-- Unreal-aware project discovery, engine detection, launch, and connect flow
 
 ## Planned Next
 
@@ -47,7 +44,6 @@ older Unreal-specific Python hub.
 - richer output formatting for content types
 - health monitoring and refresh policies
 - better CLI argument coercion from cached JSON schema
-- persistable Unreal project profiles on top of the generic core
 
 ## Quick Start
 
@@ -118,22 +114,6 @@ cargo run -- daemon status
 cargo run -- health context7 --daemon --json
 cargo run -- invoke context7/resolve-library-id libraryName=react query=react --daemon
 cargo run -- daemon stop
-```
-
-## Unreal Quick Start
-
-For projects that use the `UnrealCopilot` plugin and expose MCP from inside the
-editor process:
-
-```powershell
-cargo run -- unreal status
-cargo run -- unreal connect --launch --wait-seconds 180
-```
-
-To pin a stable endpoint id:
-
-```powershell
-cargo run -- unreal connect --endpoint-id lyra-local --launch --wait-seconds 180
 ```
 
 And the facade can resolve tools by `qualified_name` too:
