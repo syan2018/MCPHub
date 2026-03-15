@@ -27,7 +27,7 @@ The core idea is simple:
 - CLI for register/list/discover/call
 - stdio MCP facade server (`serve-stdio`)
 - structured tool catalog output with `list-tools --json`
-- single-tool schema inspection with `tool-info`
+- schema inspection with `tool-info`, including `tool-info --all --json <endpoint_id>`
 - qualified-name invocation such as `context7/resolve-library-id`
 - nested CLI argument assignment via dotted `--set`
 - schema-driven local invoke flow with positional `KEY=VALUE`
@@ -50,6 +50,7 @@ cargo run -- register-http docs-main http://127.0.0.1:19840/mcp
 cargo run -- discover docs-main
 cargo run -- list-tools docs-main
 cargo run -- tool-info docs-main/search
+cargo run -- tool-info --all --json docs-main
 cargo run -- call docs-main/search --arguments-json "{\"query\":\"rust\",\"domain\":\"docs\"}"
 cargo run -- invoke docs-main/search query=rust domain=docs
 cargo run -- daemon start
@@ -74,15 +75,11 @@ To serve MCPHub itself as a stdio MCP facade:
 cargo run -- serve-stdio
 ```
 
-To proxy a nested upstream tool call without raw JSON escaping, use dotted
-`--set` paths:
+To inspect every cached tool for one endpoint, including starter input
+templates:
 
 ```powershell
-cargo run -- call hub-facade call-tool `
-  --set endpoint_id=context7 `
-  --set tool_name=resolve-library-id `
-  --set arguments.libraryName=react `
-  --set arguments.query=react
+cargo run -- tool-info --all --json context7
 ```
 
 You can also inspect one cached tool directly by qualified name:
@@ -111,18 +108,4 @@ cargo run -- daemon status
 cargo run -- health context7 --daemon --json
 cargo run -- invoke context7/resolve-library-id libraryName=react query=react --daemon
 cargo run -- daemon stop
-```
-
-And the facade can resolve tools by `qualified_name` too:
-
-```powershell
-cargo run -- call hub-facade get-tool-info `
-  --set qualified_name=context7/resolve-library-id
-```
-
-The facade also exposes endpoint health checks:
-
-```powershell
-cargo run -- call hub-facade check-endpoint-health `
-  --set endpoint_id=context7
 ```

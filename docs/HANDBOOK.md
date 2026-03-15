@@ -120,8 +120,7 @@ This is supported by:
 - `tool-info`
 - `call`
 - `invoke`
-- facade `get-tool-info`
-- facade `call-tool`
+- `tool-info --all --json <endpoint_id>` for bulk schema inspection
 
 ## Runtime Model
 
@@ -225,6 +224,12 @@ Inspect one tool:
 cargo run -- tool-info context7/resolve-library-id --json
 ```
 
+Inspect every cached tool for one endpoint:
+
+```powershell
+cargo run -- tool-info --all --json context7
+```
+
 `tool-info` returns:
 
 - description
@@ -237,15 +242,6 @@ Call with raw JSON:
 
 ```powershell
 cargo run -- call context7/resolve-library-id --arguments-json "{\"libraryName\":\"react\",\"query\":\"react\"}"
-```
-
-Call with dotted `--set` paths:
-
-```powershell
-cargo run -- call hub-facade call-tool `
-  --set qualified_name=context7/resolve-library-id `
-  --set arguments.libraryName=react `
-  --set arguments.query=react
 ```
 
 ### Schema-driven Local Invoke
@@ -338,16 +334,6 @@ Currently exposed hub-native tools:
 - `register-stdio-endpoint`
 - `remove-endpoint`
 
-Example facade calls from the local CLI:
-
-```powershell
-cargo run -- call hub-facade get-tool-info --set qualified_name=context7/resolve-library-id
-```
-
-```powershell
-cargo run -- call hub-facade check-endpoint-health --set endpoint_id=context7
-```
-
 ## Schema Handling Behavior
 
 Current schema support is intentionally conservative.
@@ -376,18 +362,14 @@ Not yet implemented:
 The following flows have been verified during development:
 
 - register and discover `context7` over HTTP
+- inspect cached schemas with `tool-info --all --json context7`
 - call `context7/resolve-library-id`
-- register `hub-facade` as a stdio endpoint
-- discover hub-native tools through the facade
-- call `get-tool-info` through the facade
-- call `call-tool` through the facade
 - run `health --repeat 2` and observe `reused_connection=true` on the second
   check
 
 Unit test status at the time of writing:
 
 - `cargo test` passes
-- current test count: 11
 
 ## Known Limitations
 

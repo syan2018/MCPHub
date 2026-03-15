@@ -114,8 +114,7 @@ Endpoint 就是一个注册进来的上游 MCP Server。
 - `tool-info`
 - `call`
 - `invoke`
-- facade 的 `get-tool-info`
-- facade 的 `call-tool`
+- `tool-info --all --json <endpoint_id>`，用于批量查看缓存 schema
 
 ## 运行时模型
 
@@ -219,6 +218,12 @@ cargo run -- list-tools context7 --json
 cargo run -- tool-info context7/resolve-library-id --json
 ```
 
+检查某个 endpoint 下的全部缓存工具：
+
+```powershell
+cargo run -- tool-info --all --json context7
+```
+
 `tool-info` 会返回：
 
 - description
@@ -231,15 +236,6 @@ cargo run -- tool-info context7/resolve-library-id --json
 
 ```powershell
 cargo run -- call context7/resolve-library-id --arguments-json "{\"libraryName\":\"react\",\"query\":\"react\"}"
-```
-
-用 dotted `--set` 传嵌套参数：
-
-```powershell
-cargo run -- call hub-facade call-tool `
-  --set qualified_name=context7/resolve-library-id `
-  --set arguments.libraryName=react `
-  --set arguments.query=react
 ```
 
 ### Schema 驱动的本地 Invoke
@@ -331,16 +327,6 @@ cargo run -- serve-stdio
 - `register-stdio-endpoint`
 - `remove-endpoint`
 
-通过本地 CLI 调用 facade 的例子：
-
-```powershell
-cargo run -- call hub-facade get-tool-info --set qualified_name=context7/resolve-library-id
-```
-
-```powershell
-cargo run -- call hub-facade check-endpoint-health --set endpoint_id=context7
-```
-
 ## Schema 处理行为
 
 当前 schema 支持是“保守而实用”的版本。
@@ -369,17 +355,13 @@ cargo run -- call hub-facade check-endpoint-health --set endpoint_id=context7
 开发过程中已经验证过这些链路：
 
 - 通过 HTTP 注册并发现 `context7`
+- 通过 `tool-info --all --json context7` 检查缓存 schema
 - 调用 `context7/resolve-library-id`
-- 把 `hub-facade` 作为 stdio endpoint 注册回来
-- 通过 facade 发现 hub-native tools
-- 通过 facade 调用 `get-tool-info`
-- 通过 facade 调用 `call-tool`
 - 运行 `health --repeat 2` 并看到第二次返回 `reused_connection=true`
 
 编写本文档时的测试状态：
 
 - `cargo test` 通过
-- 当前测试数：11
 
 ## 当前限制
 

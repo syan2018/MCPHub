@@ -111,6 +111,30 @@ impl HubService {
         })
     }
 
+    pub fn inspect_tools(&self, endpoint_id: &str) -> Result<Vec<ToolInspection>> {
+        let tools = self
+            .registry
+            .list_tools(Some(endpoint_id))
+            .into_iter()
+            .cloned()
+            .collect::<Vec<_>>();
+        if tools.is_empty() {
+            return Err(anyhow!("no cached tools for endpoint '{}'", endpoint_id));
+        }
+
+        Ok(tools
+            .into_iter()
+            .map(|tool| ToolInspection {
+                endpoint_id: tool.endpoint_id.clone(),
+                tool_name: tool.name.clone(),
+                qualified_name: tool.qualified_name.clone(),
+                description: tool.description.clone(),
+                input_schema: tool.input_schema.clone(),
+                input_template: build_input_template(&tool.input_schema),
+            })
+            .collect())
+    }
+
     pub fn resolve_tool_target(
         &self,
         endpoint_or_qualified: &str,

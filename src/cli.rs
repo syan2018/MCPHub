@@ -89,10 +89,12 @@ struct CallArgs {
 
 #[derive(Debug, Args)]
 struct ToolInfoArgs {
-    endpoint_or_qualified: String,
-    tool_name: Option<String>,
+    #[arg(long)]
+    all: bool,
     #[arg(long)]
     json: bool,
+    endpoint_or_qualified: String,
+    tool_name: Option<String>,
 }
 
 #[derive(Debug, Args)]
@@ -298,6 +300,32 @@ async fn call(args: CallArgs) -> Result<()> {
 
 async fn tool_info(args: ToolInfoArgs) -> Result<()> {
     let service = HubService::load()?;
+    if args.all {
+        if args.tool_name.is_some() || args.endpoint_or_qualified.contains('/') {
+            bail!("tool-info --all expects a plain <endpoint_id> without a tool name");
+        }
+        let tools = service.inspect_tools(&args.endpoint_or_qualified)?;
+        if args.json {
+            println!("{}", serde_json::to_string_pretty(&tools)?);
+            return Ok(());
+        }
+
+        for (index, tool) in tools.iter().enumerate() {
+            if index > 0 {
+                println!();
+            }
+            println!("qualified_name: {}", tool.qualified_name);
+            println!("description: {}", tool.description);
+            println!();
+            println!("input_schema:");
+            println!("{}", serde_json::to_string_pretty(&tool.input_schema)?);
+            println!();
+            println!("input_template:");
+            println!("{}", serde_json::to_string_pretty(&tool.input_template)?);
+        }
+        return Ok(());
+    }
+
     let target =
         service.resolve_tool_target(&args.endpoint_or_qualified, args.tool_name.as_deref())?;
     let tool = service.inspect_tool(&target.endpoint_id, &target.tool_name)?;
@@ -505,9 +533,10 @@ fn split_path(key: &str) -> Result<Vec<&str>> {
 
 #[cfg(test)]
 mod tests {
+    use clap::Parser;
     use serde_json::json;
 
-    use super::{insert_argument_path, parse_inline_value, split_path};
+    use super::{Cli, Command, insert_argument_path, parse_inline_value, split_path};
     use crate::schema_utils::{build_input_template, coerce_value_for_path};
 
     #[test]
@@ -581,5 +610,42 @@ mod tests {
         });
 
         assert_eq!(build_input_template(&schema), json!({"query": "<string>"}));
+    }
+
+    #[test]
+    fn tool_info_accepts_all_mode_with_flags_before_endpoint() {
+        let cli = Cli::try_parse_from(["mcphub", "tool-info", "--all", "--json", "ue-main"])
+            .expect("tool-info --all should parse");
+
+        match cli.command {
+            Command::ToolInfo(args) => {
+                assert!(args.all);
+                assert!(args.json);
+                assert_eq!(args.endpoint_or_qualified, "ue-main");
+                assert_eq!(args.tool_name, None);
+            }
+            other => panic!("unexpected command: {other:?}"),
+        }
+    }
+
+    #[test]
+    fn tool_info_accepts_qualified_name_without_all() {
+        let cli = Cli::try_parse_from([
+            "mcphub",
+            "tool-info",
+            "context7/resolve-library-id",
+            "--json",
+        ])
+        .expect("qualified tool-info should parse");
+
+        match cli.command {
+            Command::ToolInfo(args) => {
+                assert!(!args.all);
+                assert!(args.json);
+                assert_eq!(args.endpoint_or_qualified, "context7/resolve-library-id");
+                assert_eq!(args.tool_name, None);
+            }
+            other => panic!("unexpected command: {other:?}"),
+        }
     }
 }
